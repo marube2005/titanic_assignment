@@ -2,114 +2,69 @@
 
 ## Project Overview
 
-This project analyzes the **Titanic passenger dataset** to understand the factors that influenced survival during the disaster and to build machine learning models that predict passenger survival.
-
-The workflow follows a standard data science pipeline:
+This project analyzes the Titanic dataset and builds a feature-rich modeling dataset for survival prediction.
+The assignment workflow is implemented in three major parts:
 
 1. Data Cleaning
-2. Exploratory Data Analysis (EDA)
-3. Feature Engineering
-4. Feature Selection
-5. Model Training and Evaluation
+2. Feature Engineering
+3. Feature Selection
 
-The goal is to transform raw passenger data into meaningful features and identify which characteristics most strongly influence survival.
-
----
+The project includes notebook-based exploration and modular Python scripts for reproducible execution.
 
 ## Dataset
 
-The dataset contains information about passengers aboard the Titanic, including:
+Files used:
 
-* Passenger class (`Pclass`)
-* Name
-* Sex
-* Age
-* Number of siblings/spouses (`SibSp`)
-* Number of parents/children (`Parch`)
-* Ticket number
-* Fare
-* Cabin
-* Port of embarkation (`Embarked`)
-* Survival status (`Survived`)
+- `data/train.csv`: training data with target column `Survived`
+- `data/titanic_test.csv`: test data provided in this repository
+- `data/test.csv`: optional alias for compatibility with assignment naming
 
 Target variable:
 
-* **Survived**
-
-  * `1` → Passenger survived
-  * `0` → Passenger did not survive
-
----
+- `Survived` (`1` = survived, `0` = did not survive)
 
 ## Project Structure
 
-```
-Titanic-Project/
-│
+```text
+titanic_assignment/
 ├── data/
-│   └── train.csv
-│
+│   ├── train.csv
+│   ├── titanic_test.csv
+│   ├── test.csv
+│   ├── train_cleaned.csv
+│   ├── train_engineered.csv
+│   └── selected_features.csv
 ├── notebooks/
-│   ├── 01_data_cleaning.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   ├── 03_feature_selection.ipynb
-│   └── 04_model_training.ipynb
-│
+│   └── Titanic_Feature_Engineering.ipynb
 ├── scripts/
 │   ├── data_cleaning.py
 │   ├── feature_engineering.py
 │   └── feature_selection.py
-│
-├── outputs/
-│   ├── figures/
-│   └── models/
-│
+├── requirements.txt
 └── README.md
 ```
 
----
+## Setup
 
-## Installation
-
-Clone the repository:
+From project root:
 
 ```bash
-git clone https://github.com/yourusername/titanic-assignment.git
-cd titanic-assignment
+python3 -m venv env
+source env/bin/activate
+pip install -r requirements.txt
 ```
 
-Install required packages:
+## How To Run
 
-```bash
-pip install pandas numpy scikit-learn seaborn matplotlib jupyter
-```
-
----
-
-## How to Run the Project
-
-### Option 1: Run the Notebooks (Recommended)
-
-Start Jupyter Notebook:
+### Option 1: Notebook Workflow
 
 ```bash
 jupyter notebook
 ```
 
-Run notebooks in order:
+Open `notebooks/Titanic_Feature_Engineering.ipynb` and run cells in order.
 
-1. `01_data_cleaning.ipynb`
-2. `02_feature_engineering.ipynb`
-3. `03_feature_selection.ipynb`
-4. `04_model_training.ipynb`
-
-Each notebook corresponds to one stage of the data science pipeline.
-
----
-
-### Option 2: Run Python Scripts
-
-You can also run the scripts individually:
+### Option 2: Script Workflow
 
 ```bash
 python scripts/data_cleaning.py
@@ -117,87 +72,54 @@ python scripts/feature_engineering.py
 python scripts/feature_selection.py
 ```
 
-These scripts perform preprocessing and prepare the dataset for modeling.
+## Assignment Coverage
 
----
+### Part 1: Data Cleaning
 
-## Feature Engineering Highlights
+Implemented:
 
-Several new features were created to improve predictive performance:
+- Missing values identified and handled across columns
+- `Embarked` imputed with mode
+- `Age` imputed with grouped median by `Pclass` and `Sex`
+- `CabinMissing` indicator created
+- `Deck` extracted from `Cabin` before dropping `Cabin`
+- Outlier capping for `Fare` at 99th percentile
+- `Sex` consistency normalization (lowercase strip)
+- Duplicate row removal
+- Output file: `data/train_cleaned.csv`
 
-* **FamilySize** – total family members onboard
-* **IsAlone** – indicates passengers traveling alone
-* **Fare_per_person** – normalized fare within families
-* **Title extraction** – titles extracted from passenger names
-* **Deck extraction** – derived from cabin information
-* **AgeGroup** – categorized age ranges
-* **Interaction features** such as `Age_Title` and `Pclass_Fare`
+### Part 2: Feature Engineering
 
-Categorical variables were converted to numeric form using **one-hot encoding**.
+Implemented:
 
----
+- Derived features: `FamilySize`, `IsAlone`, `Title`, `Deck`, `AgeGroup`, `FarePerPerson`
+- One-hot encoding for nominal features: `Sex`, `Embarked`, `Title`, `Deck`, `AgeGroup`
+- Ordinal handling: `Pclass` retained as integer order
+- Interaction features: `Pclass_Fare`, `Age_Title`
+- Transformations: `LogFare`, `LogAge`
+- Scaling for distance-based models using `StandardScaler`
+- Visualizations in notebook to justify transformations
+- Output file: `data/train_engineered.csv`
 
-## Feature Selection Methods
+### Part 3: Feature Selection
 
-Three methods were used to identify the most informative predictors:
+Implemented:
 
-1. **Correlation analysis** to detect redundant variables
-2. **Random Forest feature importance** to rank predictive features
-3. **Recursive Feature Elimination (RFE)** to select an optimal subset of features
+- Correlation analysis and redundant-feature pruning
+- Random Forest feature importance ranking
+- Recursive Feature Elimination (RFE)
+- Final selected feature list output
+- Output file: `data/selected_features.csv`
 
-This process reduces noise and improves model generalization.
+## Key Findings
 
----
+- Family context (`FamilySize`, `IsAlone`) provides strong survival signals.
+- Socioeconomic proxies (`Pclass`, `Fare`, `Title`) are informative predictors.
+- Log transforms reduce skew in continuous features and stabilize model behavior.
+- Tree-based importance and RFE produce overlapping high-value feature sets.
 
-## Key Observations
+## Notes
 
-Several factors strongly influenced survival:
-
-### Gender
-
-Female passengers had a significantly higher survival rate compared to males.
-
-### Passenger Class
-
-Passengers in **1st class** had a higher chance of survival than those in lower classes.
-
-### Age
-
-Children had higher survival rates, reflecting evacuation priorities.
-
-### Family Size
-
-Passengers traveling with **small families** tended to survive more often than those traveling alone or in very large groups.
-
-### Fare
-
-Higher fares (often associated with higher class cabins) were correlated with better survival outcomes.
-
----
-
-## Tools and Technologies
-
-* Python
-* Pandas
-* NumPy
-* Scikit-learn
-* Seaborn
-* Matplotlib
-* Jupyter Notebook
-
----
-
-## Future Improvements
-
-Possible extensions of this project include:
-
-* Hyperparameter tuning
-* Ensemble models (XGBoost, Gradient Boosting)
-* Cross-validation pipelines
-* Advanced feature engineering (ticket groups, family survival signals)
-
----
-
-## Author
-
-Data Science / Machine Learning project focused on applying practical data preprocessing, feature engineering, and model selection techniques to a real-world dataset.
+- This repository includes both notebook and script implementations as requested.
+- `test.csv` is included as a compatibility alias for the assignment structure.
+>>>>>>> 3df296d (Aligned the project structure in order to complete the assignment)
